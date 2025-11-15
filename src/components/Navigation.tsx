@@ -25,8 +25,9 @@ export const Navigation = () => {
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/home" className="text-xl font-bold">
-          Skill Sphere Arena
+        <Link to="/home" className="flex items-center gap-2 text-xl font-bold">
+          <img src="/logo.png" alt="Skill Sphere Arena Logo" className="h-8 w-8" />
+          <span>Skill Sphere Arena</span>
         </Link>
         <div className="flex items-center gap-4">
           <nav className="hidden md:flex gap-4">
