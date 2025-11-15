@@ -9,6 +9,8 @@ import Profile from "./pages/Profile";
 import Faculty from "./pages/Faculty";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import SignIn from "./pages/SignIn";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -19,11 +21,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<StudentHome />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/faculty" element={<Faculty />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/" element={<SignIn />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<StudentHome />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/faculty" element={<Faculty />} />
+            <Route path="/admin" element={<Admin />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

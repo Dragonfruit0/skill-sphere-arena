@@ -1,48 +1,65 @@
-import { NavLink } from "@/components/NavLink";
-import { Home, Trophy, User, Users, Shield } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { auth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 export const Navigation = () => {
-  const navItems = [
-    { to: "/", icon: Home, label: "Home" },
-    { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
-    { to: "/profile", icon: User, label: "Profile" },
-    { to: "/faculty", icon: Users, label: "Faculty" },
-    { to: "/admin", icon: Shield, label: "Admin" },
-  ];
+  const { userData } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl shadow-lg">
-            S
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Skill Sphere
-            </h1>
-            <p className="text-xs text-muted-foreground">Level Up Your Skills</p>
-          </div>
+    <header className="border-b">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <Link to="/home" className="text-xl font-bold">
+          Skill Sphere Arena
+        </Link>
+        <div className="flex items-center gap-4">
+          <nav className="hidden md:flex gap-4">
+            <Link to="/leaderboard">Leaderboard</Link>
+            <Link to="/profile">Profile</Link>
+            {userData?.role === "faculty" && <Link to="/faculty">Faculty</Link>}
+            {userData?.role === "admin" && <Link to="/admin">Admin</Link>}
+          </nav>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="/avatars/01.png" alt="@shadcn" />
+                  <AvatarFallback>{userData?.name?.[0]}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {userData?.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {userData?.rollNumber}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>Log out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-
-        <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-muted"
-              activeClassName="text-primary bg-primary/10 hover:bg-primary/15"
-            >
-              <item.icon className="h-4 w-4" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <Button size="sm" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
-          Sign Out
-        </Button>
       </div>
     </header>
   );
