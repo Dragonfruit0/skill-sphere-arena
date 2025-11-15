@@ -1,73 +1,96 @@
-# Welcome to your Lovable project
+# Skill Sphere Arena
 
-## Project info
+Skill Sphere Arena is a web application designed for users to showcase their skills and achievements. It provides a platform for users to submit their accomplishments for verification and features an administrative dashboard for reviewing and managing these submissions.
 
-**URL**: https://lovable.dev/projects/bc1c2b64-18ee-4b9b-85ca-f4c41744b91e
+## Live Demo
 
-## How can I edit this code?
+*https://skill-sphere-arena.vercel.app/*
 
-There are several ways of editing your application.
+## Core Features
 
-**Use Lovable**
+- **User Authentication:** Secure sign-up and login functionality using Firebase Authentication.
+- **Achievement Submission:** Users can submit their achievements, including a title, description, and an optional link to evidence (e.g., a Google Drive link to a certificate or image).
+- **Profile Page:** A dedicated page for each user to view their submitted achievements and their status (Pending, Approved, Rejected).
+- **Admin Review Panel:** A secure area for administrators to review, approve, or reject user submissions.
+- **Real-time Updates:** Built with Firebase Firestore to provide real-time updates on the status of submissions.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/bc1c2b64-18ee-4b9b-85ca-f4c41744b91e) and start prompting.
+## Technology Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+This project is built with a modern, type-safe, and scalable technology stack:
 
-**Use your preferred IDE**
+- **Frontend:** **React** & **Vite**
+- **Language:** **TypeScript**
+- **Backend as a Service (BaaS):** **Firebase**
+  - **Authentication:** Firebase Authentication
+  - **Database:** Cloud Firestore
+  - **Data Schema & SDK:** Firebase DataConnect
+- **Styling:** **Tailwind CSS**
+- **UI Components:** **shadcn/ui**
+- **Data Fetching/State Management:** **TanStack Query (React Query)**
+- **Deployment:** **Vercel**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Local Development Setup
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+To run this project on your local machine, follow these steps.
 
-Follow these steps:
+### 1. Clone the Repository
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd skill-sphere-arena
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 2. Install Dependencies
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 3. Set up Firebase
+
+1.  Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
+2.  In your project dashboard, click on **"Add app"** and select the **Web** icon (`</>`).
+3.  Follow the setup instructions, and when you see the `firebaseConfig` object, copy the keys and values.
+4.  In the root of the `skill-sphere-arena` directory, create a new file named `.env.local`.
+5.  Paste your Firebase config into the `.env.local` file, formatting it like the example below. **Make sure to prefix each variable with `VITE_`** as required by Vite.
+
+    ```
+    # .env.local
+
+    VITE_FIREBASE_API_KEY="your-api-key"
+    VITE_FIREBASE_AUTH_DOMAIN="your-auth-domain"
+    VITE_FIREBASE_PROJECT_ID="your-project-id"
+    VITE_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
+    VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
+    VITE_FIREBASE_APP_ID="your-app-id"
+    ```
+
+6. Enable Firestore in your Firebase project console.
+
+### 4. Start the Development Server
+
+Now you can start the local development server.
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Deployment
 
-**Use GitHub Codespaces**
+This project is configured for easy deployment to [Vercel](https://vercel.com/).
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To deploy to production, run the following command from the root of the `skill-sphere-arena` directory:
 
-## What technologies are used for this project?
+```bash
+vercel --prod
+```
 
-This project is built with:
+## Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/bc1c2b64-18ee-4b9b-85ca-f4c41744b91e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `/src/components`: Contains reusable UI components.
+- `/src/pages`: The main pages of the application (e.g., Profile, Admin, Login).
+- `/src/context`: Holds the React Context for authentication state.
+- `/src/firebase.ts`: Initializes the Firebase app and services.
+- `/dataconnect`: Contains the Firebase DataConnect schema (`dataconnect.schema.graphql`) and the auto-generated SDK for type-safe database interactions.
