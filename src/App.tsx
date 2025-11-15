@@ -1,16 +1,20 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import StudentHome from "./pages/StudentHome";
-import Leaderboard from "./pages/Leaderboard";
-import Profile from "./pages/Profile";
-import Faculty from "./pages/Faculty";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
-import SignIn from "./pages/SignIn";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Loader2 } from "lucide-react";
+
+// Lazy load the page components
+const SignIn = lazy(() => import("./pages/SignIn"));
+const StudentHome = lazy(() => import("./pages/StudentHome"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Faculty = lazy(() => import("./pages/Faculty"));
+const Admin = lazy(() => import("./pages/Admin"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -20,17 +24,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<SignIn />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/home" element={<StudentHome />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/faculty" element={<Faculty />} />
-            <Route path="/admin" element={<Admin />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense 
+          fallback={
+            <div className="flex h-screen items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<SignIn />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<StudentHome />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/faculty" element={<Faculty />} />
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

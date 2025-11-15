@@ -5,10 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
-import { db, storage } from "@/firebase";
-import { addDoc, collection, onSnapshot, query, serverTimestamp, where } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { Award, User, CheckCircle, XCircle, Clock, Building2 } from "lucide-react";
+import { db } from "@/firebase";
+import {
+  addDoc,
+  collection,
+  query,
+  serverTimestamp,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
+} from "firebase/firestore";
+import { Award, User, CheckCircle, XCircle, Clock, Building2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Achievement {
@@ -19,57 +30,128 @@ interface Achievement {
 }
 
 const Profile = () => {
-  const { userData } = useAuth();
+  const { currentUser, userData } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loadingAchievements, setLoadingAchievements] = useState(true);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
-    if (!userData) return;
+    if (!currentUser?.uid) {
+      setLoadingAchievements(false);
+      return;
+    }
 
-    const q = query(collection(db, "achievements"), where("userId", "==", userData.uid));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const userAchievements: Achievement[] = [];
-      querySnapshot.forEach((doc) => {
-        userAchievements.push({ id: doc.id, ...doc.data() } as Achievement);
+    const fetchInitialAchievements = async () => {
+      setLoadingAchievements(true);
+      try {
+        const q = query(
+          collection(db, "achievements"),
+          where("userId", "==", currentUser.uid),
+          orderBy("submittedAt", "desc"),
+          limit(10)
+        );
+        const documentSnapshots = await getDocs(q);
+        
+        const userAchievements: Achievement[] = [];
+        documentSnapshots.forEach((doc) => {
+          userAchievements.push({ id: doc.id, ...doc.data() } as Achievement);
+        });
+
+        setAchievements(userAchievements);
+        const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+        setLastVisible(lastDoc);
+
+        if (documentSnapshots.docs.length < 10) {
+          setHasMore(false);
+        }
+
+      } catch (error) {
+        console.error("Error fetching achievements:", error);
+      } finally {
+        setLoadingAchievements(false);
+      }
+    };
+
+    fetchInitialAchievements();
+  }, [currentUser]);
+
+  const fetchMoreAchievements = async () => {
+    if (!lastVisible || !currentUser?.uid) return;
+
+    setLoadingMore(true);
+    try {
+      const nextQuery = query(
+        collection(db, "achievements"),
+        where("userId", "==", currentUser.uid),
+        orderBy("submittedAt", "desc"),
+        startAfter(lastVisible),
+        limit(10)
+      );
+      const documentSnapshots = await getDocs(nextQuery);
+
+      const newAchievements: Achievement[] = [];
+      documentSnapshots.forEach((doc) => {
+        newAchievements.push({ id: doc.id, ...doc.data() } as Achievement);
       });
-      setAchievements(userAchievements);
-    });
 
-    return () => unsubscribe();
-  }, [userData]);
+      setAchievements((prev) => [...prev, ...newAchievements]);
+      const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+      setLastVisible(lastDoc);
 
+      if (documentSnapshots.docs.length < 10) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching more achievements:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description || !file || !userData) return;
+    if (!title || !description || !userData) {
+      alert("Please fill out the title and description.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      const storageRef = ref(storage, `achievements/${Date.now()}_${file.name}`);
-      const uploadResult = await uploadBytes(storageRef, file);
-      const mediaUrl = await getDownloadURL(uploadResult.ref);
-
-      await addDoc(collection(db, "achievements"), {
-        userId: userData.uid,
+      const newAchievementData = {
+        userId: currentUser.uid,
         userName: userData.name,
         userRollNumber: userData.rollNumber,
-        userDepartment: userData.department, // Add this line
+        userDepartment: userData.department,
         title,
         description,
         link,
-        mediaUrl,
-        status: "pending",
+        mediaUrl: "", // No media URL for now
+        status: "pending" as const,
         submittedAt: serverTimestamp(),
-      });
+      };
 
+      const docRef = await addDoc(collection(db, "achievements"), newAchievementData);
+
+      // Optimistically add the new achievement to the top of the list
+      const displayAchievement = { 
+        id: docRef.id, 
+        ...newAchievementData,
+        status: 'pending' as const
+      };
+      setAchievements(prev => [displayAchievement, ...prev]);
+
+      // Reset form
       setTitle("");
       setDescription("");
       setLink("");
-      setFile(null);
+      
       alert("Achievement submitted for verification!");
     } catch (error) {
       console.error("Error submitting achievement: ", error);
@@ -133,27 +215,24 @@ const Profile = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="media" className="text-gray-700">
+                    <Label className="text-gray-700">
                       Media (Image/Certificate)
                     </Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input
-                        id="media"
-                        type="file"
-                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                        required
-                      />
+                    <div className="flex items-center justify-center p-4 bg-gray-100 rounded-md border-dashed border-2 border-gray-300 mt-1">
+                      <p className="text-sm text-gray-500">
+                        Direct media upload coming soon!
+                      </p>
                     </div>
                   </div>
                   <div>
                     <Label htmlFor="link" className="text-gray-700">
-                      Link (Optional)
+                      Link to Proof (Optional)
                     </Label>
                     <Input
                       id="link"
                       value={link}
                       onChange={(e) => setLink(e.target.value)}
-                      placeholder="e.g., https://github.com/your-project"
+                      placeholder="e.g., Google Drive, GitHub link"
                       className="bg-white"
                     />
                   </div>
@@ -174,32 +253,43 @@ const Profile = () => {
           </section>
 
           <section>
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">My Achievements</h2>
-          <Card className="bg-gray-50 border-gray-200 p-6">
-            {achievements.length > 0 ? (
-              <ul className="space-y-4">
-                {achievements.map((ach) => (
-                  <li key={ach.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                    <div>
-                      <p className="font-semibold text-gray-800">{ach.title}</p>
-                      <p className="text-sm text-gray-600">{ach.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {ach.status === 'approved' && <CheckCircle className="h-6 w-6 text-green-500" />}
-                      {ach.status === 'rejected' && <XCircle className="h-6 w-6 text-red-500" />}
-                      {ach.status === 'pending' && <Clock className="h-6 w-6 text-yellow-500" />}
-                      <span className="capitalize text-gray-700">{ach.status}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <p>Your submitted achievements will appear here.</p>
-              </div>
-            )}
-          </Card>
-        </section>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">My Achievements</h2>
+            <Card className="bg-gray-50 border-gray-200 p-6">
+              {loadingAchievements ? (
+                 <div className="flex justify-center items-center py-12">
+                   <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                 </div>
+              ) : achievements.length > 0 ? (
+                <ul className="space-y-4">
+                  {achievements.map((ach) => (
+                    <li key={ach.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                      <div>
+                        <p className="font-semibold text-gray-800">{ach.title}</p>
+                        <p className="text-sm text-gray-600">{ach.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {ach.status === 'approved' && <CheckCircle className="h-6 w-6 text-green-500" />}
+                        {ach.status === 'rejected' && <XCircle className="h-6 w-6 text-red-500" />}
+                        {ach.status === 'pending' && <Clock className="h-6 w-6 text-yellow-500" />}
+                        <span className="capitalize text-gray-700 font-medium">{ach.status}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <p>Your submitted achievements will appear here.</p>
+                </div>
+              )}
+              {hasMore && (
+                <div className="mt-6 text-center">
+                  <Button onClick={fetchMoreAchievements} disabled={loadingMore} variant="outline">
+                    {loadingMore ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</> : "Load More"}
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </section>
         </div>
       </main>
     </div>

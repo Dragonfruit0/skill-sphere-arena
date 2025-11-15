@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Award } from "lucide-react";
 import { db } from "@/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 interface Student {
@@ -18,28 +18,18 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "achievements"), where("status", "==", "approved"));
+    // Query the users collection and order by score in descending order.
+    // This is much more efficient than calculating scores on the client-side.
+    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(100));
+    
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const studentScores: { [userId: string]: Student & { achievements: number } } = {};
-
+      const sortedLeaderboard: Student[] = [];
       querySnapshot.forEach((doc) => {
-        const achievement = doc.data();
-        const { userId, userName, userDepartment } = achievement;
-
-        if (!studentScores[userId]) {
-          studentScores[userId] = {
-            id: userId,
-            name: userName,
-            department: userDepartment || 'N/A',
-            score: 0,
-            achievements: 0,
-          };
-        }
-        studentScores[userId].score += 10; // Assign 10 points for each approved achievement
-        studentScores[userId].achievements += 1;
+        // Push the user data directly to the leaderboard.
+        // The score is pre-calculated and stored in the user document.
+        sortedLeaderboard.push({ id: doc.id, ...doc.data() } as Student);
       });
-
-      const sortedLeaderboard = Object.values(studentScores).sort((a, b) => b.score - a.score);
+      
       setLeaderboard(sortedLeaderboard);
       setLoading(false);
     });
@@ -73,7 +63,7 @@ const Leaderboard = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-xl text-yellow-600">{student.score} pts</p>
+                    <p className="font-bold text-xl text-yellow-600">{student.score || 0} pts</p>
                   </div>
                 </li>
               ))}
