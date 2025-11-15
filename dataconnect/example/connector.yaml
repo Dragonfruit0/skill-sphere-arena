@@ -1,0 +1,8 @@
+connectorId: example
+generate:
+  javascriptSdk:
+    - outputDir: ../../skill-sphere-arena/src/dataconnect-generated
+      package: "@dataconnect/generated"
+      packageJsonDir: ../../skill-sphere-arena
+      react: true
+      angular: false

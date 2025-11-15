@@ -1,0 +1,40 @@
+mutation CreateDemoUser @auth(level: PUBLIC, insecureReason: "This mutation is used to seed the database with a demo user, and does not contain user-specific info") {
+  user_insert(data: {
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    username: "demouser",
+    email: "demo@example.com",
+    passwordHash: "securepassword",
+    createdAt: "2024-04-26T12:00:00Z"
+  })
+}
+
+query GetMyRoutines @auth(level: USER) {
+  routines(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    name
+    description
+    isPublic
+    createdAt
+  }
+}
+
+mutation CreateRoutine($name: String!, $description: String, $isPublic: Boolean!) @auth(level: USER) {
+  routine_insert(data: {
+    name: $name,
+    description: $description,
+    isPublic: $isPublic,
+    userId_expr: "auth.uid",
+    createdAt_expr: "request.time"
+  })
+}
+
+mutation LogWorkout($routineId: UUID!, $logDate: Date!, $startTime: Timestamp!, $endTime: Timestamp, $notes: String) @auth(level: USER) {
+  workoutLog_insert(data: {
+    routineId: $routineId,
+    userId_expr: "auth.uid",
+    logDate: $logDate,
+    startTime: $startTime,
+    endTime: $endTime,
+    notes: $notes
+  })
+}

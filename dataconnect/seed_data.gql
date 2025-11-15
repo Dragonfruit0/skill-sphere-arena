@@ -1,0 +1,34 @@
+mutation CreateDemoData @transaction @auth(level: PUBLIC, insecureReason: "This mutation is used to populate the database with seed data and is safe to expose to the public") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      username: "demouser1",
+      email: "demouser1@example.com",
+      passwordHash: "somehash1",
+      createdAt: "2024-04-26T12:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      username: "demouser2",
+      email: "demouser2@example.com",
+      passwordHash: "somehash2",
+      createdAt: "2024-04-26T13:00:00Z"
+    }
+  ])
+  exercise_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440000",
+      name: "Push-ups",
+      description: "Classic upper body exercise.",
+      muscleGroup: "Chest",
+      difficultyLevel: "Beginner"
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      name: "Squats",
+      description: "Fundamental lower body exercise.",
+      muscleGroup: "Legs",
+      difficultyLevel: "Beginner"
+    }
+  ])
+}
