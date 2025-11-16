@@ -4,7 +4,7 @@ Skill Sphere Arena is a gamified platform designed to help students showcase the
 
 ## Live Demo
 
-[Link to the deployed application]([https://your-deployment-link.com](https://skill-sphere-arena.vercel.app/)) 
+https://skill-sphere-arena.vercel.app/
 
 ## Features
 
