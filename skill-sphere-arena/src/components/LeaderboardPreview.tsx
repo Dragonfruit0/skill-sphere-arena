@@ -5,22 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 interface LeaderboardEntry {
+  id: string;
   rank: number;
   name: string;
   department: string;
-  points: number;
+  score: number;
   trend: "up" | "down" | "same";
   skillLevel: number;
   avatar?: string;
 }
-
-const mockData: LeaderboardEntry[] = [
-  { rank: 1, name: "Alex Chen", department: "Computer Science", points: 2450, trend: "up", skillLevel: 5 },
-  { rank: 2, name: "Sarah Johnson", department: "Engineering", points: 2380, trend: "same", skillLevel: 5 },
-  { rank: 3, name: "Michael Rodriguez", department: "Business", points: 2210, trend: "up", skillLevel: 4 },
-  { rank: 4, name: "Emily Davis", department: "Computer Science", points: 2150, trend: "down", skillLevel: 4 },
-  { rank: 5, name: "James Wilson", department: "Design", points: 2090, trend: "up", skillLevel: 4 },
-];
 
 const getTrendIcon = (trend: string) => {
   switch (trend) {
@@ -40,7 +33,8 @@ const getRankBadge = (rank: number) => {
   return <Badge variant="outline">{rank}th</Badge>;
 };
 
-export const LeaderboardPreview = () => {
+// Add a default value to the data prop to prevent crashes if it's undefined
+export const LeaderboardPreview = ({ data = [] }: { data?: LeaderboardEntry[] }) => {
   return (
     <Card className="p-6 space-y-6 animate-slide-up border-2 hover:shadow-lg transition-all duration-300">
       <div className="flex items-center justify-between">
@@ -59,9 +53,9 @@ export const LeaderboardPreview = () => {
       </div>
 
       <div className="space-y-3">
-        {mockData.map((entry, index) => (
+        {data.map((entry, index) => (
           <div
-            key={entry.rank}
+            key={entry.id}
             className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${
               index === 0 ? "bg-gradient-to-r from-warning/10 to-transparent border-warning/30" : "bg-card border-border"
             }`}
@@ -81,7 +75,8 @@ export const LeaderboardPreview = () => {
 
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <p className="font-bold text-lg text-foreground">{entry.points}</p>
+                {/* Bug fix: Use entry.score instead of entry.points */}
+                <p className="font-bold text-lg text-foreground">{entry.score}</p>
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <span key={i} className={i < entry.skillLevel ? "text-warning" : "text-muted"}>⭐</span>
@@ -92,19 +87,6 @@ export const LeaderboardPreview = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="pt-4 border-t border-border">
-        <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border-2 border-primary/20">
-          <div className="flex items-center gap-3">
-            <Badge className="bg-primary text-primary-foreground">Your Rank</Badge>
-            <span className="font-semibold text-foreground">12th</span>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Your Points</p>
-            <p className="text-xl font-bold text-primary">1,850</p>
-          </div>
-        </div>
       </div>
     </Card>
   );

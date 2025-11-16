@@ -1,12 +1,12 @@
 import { Navigation } from "@/components/Navigation";
 import { StatsCard } from "@/components/StatsCard";
 import { LeaderboardPreview } from "@/components/LeaderboardPreview";
-import { Trophy, TrendingUp, Target, Award, Zap, BookOpen, Loader2 } from "lucide-react";
+import { Trophy, TrendingUp, Target, Award, Zap, BookOpen, Loader2, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
-import { collection, query, where, getCountFromServer } from "firebase/firestore";
+import { collection, query, where, getCountFromServer, orderBy, onSnapshot, limit } from "firebase/firestore";
 import { db } from "@/firebase";
 import { Link } from "react-router-dom";
 
@@ -17,7 +17,9 @@ const StudentHome = () => {
     totalAchievements: 0,
     pendingAchievements: 0,
   });
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
     if (!currentUser || !userData) return;
@@ -25,17 +27,14 @@ const StudentHome = () => {
     const fetchUserStats = async () => {
       setLoadingStats(true);
       try {
-        // 1. Calculate Rank
         const rankQuery = query(collection(db, "users"), where("score", ">", userData.score || 0));
         const rankSnapshot = await getCountFromServer(rankQuery);
         const rank = rankSnapshot.data().count + 1;
 
-        // 2. Get total achievements
         const achievementsQuery = query(collection(db, "achievements"), where("userId", "==", currentUser.uid));
         const achievementsSnapshot = await getCountFromServer(achievementsQuery);
         const totalAchievements = achievementsSnapshot.data().count;
         
-        // 3. Get pending achievements
         const pendingQuery = query(collection(db, "achievements"), where("userId", "==", currentUser.uid), where("status", "==", "pending"));
         const pendingSnapshot = await getCountFromServer(pendingQuery);
         const pendingAchievements = pendingSnapshot.data().count;
@@ -51,6 +50,26 @@ const StudentHome = () => {
 
     fetchUserStats();
   }, [currentUser, userData]);
+
+  useEffect(() => {
+    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(5));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const leaderboardData: any[] = [];
+      querySnapshot.forEach((doc, index) => {
+        leaderboardData.push({ 
+          id: doc.id, 
+          rank: index + 1,
+          trend: "same", 
+          skillLevel: Math.floor(Math.random() * 5) + 1, 
+          ...doc.data() 
+        });
+      });
+      setLeaderboard(leaderboardData);
+      setLoadingLeaderboard(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const userScore = userData?.score || 0;
 
@@ -122,7 +141,25 @@ const StudentHome = () => {
           />
         </div>
 
-        <LeaderboardPreview />
+        {loadingLeaderboard ? (
+            <div className="text-center py-12 text-gray-500">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                <p>Loading Top Performers...</p>
+            </div>
+        ) : (
+            <LeaderboardPreview data={leaderboard} />
+        )}
+
+        <div className="text-center my-12 p-8 bg-card rounded-lg border-2 border-dashed">
+            <Bot className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Confused what to do??</h2>
+            <p className="text-muted-foreground mb-6">Let our AI career counselor guide you to your future.</p>
+            <Link to="/career-bot">
+                <Button size="lg" className="font-semibold text-lg px-8 py-6">
+                    AI got u
+                </Button>
+            </Link>
+        </div>
 
       </main>
     </div>
