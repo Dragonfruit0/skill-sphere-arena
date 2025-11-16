@@ -101,13 +101,18 @@ const StudentHome = () => {
             value={loadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : userScore}
             variant="success"
           />
-          <StatsCard
-            icon={Award}
-            label="Achievements"
-            value={loadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.totalAchievements}
-            trend={{ value: `${stats.pendingAchievements} pending`, isPositive: stats.pendingAchievements > 0 }}
-            variant="warning"
-          />
+          <div className="relative">
+            <StatsCard
+              icon={Award}
+              label="Achievements"
+              value={loadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.totalAchievements}
+              trend={{ value: `${stats.pendingAchievements} pending`, isPositive: stats.pendingAchievements > 0 }}
+              variant="warning"
+            />
+            <Link to="/achievements" className="absolute bottom-4 right-4">
+              <Button variant="outline" size="sm">View All</Button>
+            </Link>
+          </div>
           <StatsCard
             icon={TrendingUp}
             label="Skill Level"

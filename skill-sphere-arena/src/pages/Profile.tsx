@@ -18,8 +18,10 @@ import {
   startAfter,
   QueryDocumentSnapshot,
   DocumentData,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
-import { Award, User, CheckCircle, XCircle, Clock, Building2, Loader2 } from "lucide-react";
+import { Award, User, CheckCircle, XCircle, Clock, Building2, Loader2, Github, Linkedin } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Achievement {
@@ -35,12 +37,26 @@ const Profile = () => {
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  const [githubUrl, setGithubUrl] = useState(userData?.githubUrl || "");
+  const [linkedinUrl, setLinkedinUrl] = useState(userData?.linkedinUrl || "");
+  const [bio, setBio] = useState(userData?.bio || "");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loadingAchievements, setLoadingAchievements] = useState(true);
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    if (userData) {
+      setGithubUrl(userData.githubUrl || "");
+      setLinkedinUrl(userData.linkedinUrl || "");
+      setBio(userData.bio || "");
+    }
+  }, [userData]);
 
   useEffect(() => {
     if (!currentUser?.uid) {
@@ -139,7 +155,6 @@ const Profile = () => {
 
       const docRef = await addDoc(collection(db, "achievements"), newAchievementData);
 
-      // Optimistically add the new achievement to the top of the list
       const displayAchievement = { 
         id: docRef.id, 
         ...newAchievementData,
@@ -147,7 +162,6 @@ const Profile = () => {
       };
       setAchievements(prev => [displayAchievement, ...prev]);
 
-      // Reset form
       setTitle("");
       setDescription("");
       setLink("");
@@ -158,6 +172,27 @@ const Profile = () => {
       alert("Failed to submit achievement. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    setIsUpdatingProfile(true);
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userDocRef, {
+        githubUrl,
+        linkedinUrl,
+        bio,
+      });
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile: ", error);
+      alert("Failed to update profile. Please try again.");
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -176,10 +211,88 @@ const Profile = () => {
                 <Building2 className="h-4 w-4 text-gray-600" />
                 <p className="text-gray-600">{userData?.department}</p>
             </div>
+             <div className="flex items-center gap-4 mt-2">
+              {userData?.githubUrl && (
+                <a href={userData.githubUrl} target="_blank" rel="noopener noreferrer">
+                  <Github className="h-6 w-6 text-gray-600 hover:text-gray-900" />
+                </a>
+              )}
+              {userData?.linkedinUrl && (
+                <a href={userData.linkedinUrl} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="h-6 w-6 text-gray-600 hover:text-gray-900" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
+        
+        {userData?.bio && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-2 text-gray-900">About Me</h2>
+            <p className="text-gray-600">{userData.bio}</p>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-8">
+          <section>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-900">
+              Edit Profile
+            </h2>
+            <Card className="bg-gray-50 border-gray-200">
+              <CardContent className="pt-6">
+                <form onSubmit={handleProfileUpdate} className="space-y-4">
+                  <div>
+                    <Label htmlFor="githubUrl" className="text-gray-700">
+                      GitHub URL
+                    </Label>
+                    <Input
+                      id="githubUrl"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      placeholder="https://github.com/your-username"
+                      className="bg-white"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="linkedinUrl" className="text-gray-700">
+                      LinkedIn URL
+                    </Label>
+                    <Input
+                      id="linkedinUrl"
+                      value={linkedinUrl}
+                      onChange={(e) => setLinkedinUrl(e.target.value)}
+                      placeholder="https://linkedin.com/in/your-profile"
+                      className="bg-white"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="bio" className="text-gray-700">
+                      Bio
+                    </Label>
+                    <Textarea
+                      id="bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Tell us a little about yourself."
+                      className="bg-white"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full text-white font-semibold shadow-lg"
+                    style={{
+                      backgroundImage: "linear-gradient(to right, #6a11cb, #2575fc)",
+                    }}
+                    disabled={isUpdatingProfile}
+                  >
+                    {isUpdatingProfile ? "Updating..." : "Update Profile"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </section>
+
           <section>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-900">
               <Award className="h-6 w-6" />
@@ -249,45 +362,6 @@ const Profile = () => {
                   </Button>
                 </form>
               </CardContent>
-            </Card>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">My Achievements</h2>
-            <Card className="bg-gray-50 border-gray-200 p-6">
-              {loadingAchievements ? (
-                 <div className="flex justify-center items-center py-12">
-                   <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                 </div>
-              ) : achievements.length > 0 ? (
-                <ul className="space-y-4">
-                  {achievements.map((ach) => (
-                    <li key={ach.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                      <div>
-                        <p className="font-semibold text-gray-800">{ach.title}</p>
-                        <p className="text-sm text-gray-600">{ach.description}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {ach.status === 'approved' && <CheckCircle className="h-6 w-6 text-green-500" />}
-                        {ach.status === 'rejected' && <XCircle className="h-6 w-6 text-red-500" />}
-                        {ach.status === 'pending' && <Clock className="h-6 w-6 text-yellow-500" />}
-                        <span className="capitalize text-gray-700 font-medium">{ach.status}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <p>Your submitted achievements will appear here.</p>
-                </div>
-              )}
-              {hasMore && (
-                <div className="mt-6 text-center">
-                  <Button onClick={fetchMoreAchievements} disabled={loadingMore} variant="outline">
-                    {loadingMore ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</> : "Load More"}
-                  </Button>
-                </div>
-              )}
             </Card>
           </section>
         </div>

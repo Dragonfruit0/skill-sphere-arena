@@ -14,6 +14,11 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Faculty = lazy(() => import("./pages/Faculty"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Portfolio = lazy(() => import("./pages/Portfolio"));
+const AllAchievements = lazy(() => import("./pages/AllAchievements"));
+const CareerBot = lazy(() => import("./pages/CareerBot"));
+const CareerChat = lazy(() => import("./pages/CareerChat"));
+const CareerBlueprint = lazy(() => import("./pages/CareerBlueprint"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -39,6 +44,11 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/faculty" element={<Faculty />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/portfolio/:userId" element={<Portfolio />} />
+              <Route path="/achievements" element={<AllAchievements />} />
+              <Route path="/career-bot" element={<CareerBot />} />
+              <Route path="/career-chat" element={<CareerChat />} />
+              <Route path="/career-blueprint" element={<CareerBlueprint />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

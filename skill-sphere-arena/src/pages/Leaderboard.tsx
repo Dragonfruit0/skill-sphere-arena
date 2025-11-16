@@ -5,6 +5,7 @@ import { Trophy, Award } from "lucide-react";
 import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 interface Student {
   id: string;
@@ -19,14 +20,11 @@ const Leaderboard = () => {
 
   useEffect(() => {
     // Query the users collection and order by score in descending order.
-    // This is much more efficient than calculating scores on the client-side.
     const q = query(collection(db, "users"), orderBy("score", "desc"), limit(100));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const sortedLeaderboard: Student[] = [];
       querySnapshot.forEach((doc) => {
-        // Push the user data directly to the leaderboard.
-        // The score is pre-calculated and stored in the user document.
         sortedLeaderboard.push({ id: doc.id, ...doc.data() } as Student);
       });
       
@@ -58,7 +56,9 @@ const Leaderboard = () => {
                   <div className="flex items-center gap-4">
                     <Badge className="text-lg font-bold">{index + 1}</Badge>
                     <div>
-                      <p className="font-semibold text-gray-900">{student.name}</p>
+                      <Link to={`/portfolio/${student.id}`} className="hover:underline">
+                        <p className="font-semibold text-gray-900">{student.name}</p>
+                      </Link>
                       <p className="text-sm text-gray-600">{student.department}</p>
                     </div>
                   </div>
