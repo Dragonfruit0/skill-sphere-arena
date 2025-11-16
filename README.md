@@ -1,96 +1,120 @@
 # Skill Sphere Arena
 
-Skill Sphere Arena is a web application designed for users to showcase their skills and achievements. It provides a platform for users to submit their accomplishments for verification and features an administrative dashboard for reviewing and managing these submissions.
+Skill Sphere Arena is a gamified platform designed to help students showcase their skills, earn achievements, and climb the leaderboard. It provides a centralized hub for students to track their progress, get recognized for their accomplishments, and even get career guidance from an AI-powered chatbot.
 
 ## Live Demo
 
-*https://skill-sphere-arena.vercel.app/*
+[Link to the deployed application]([https://your-deployment-link.com](https://skill-sphere-arena.vercel.app/)) 
 
-## Core Features
+## Features
 
-- **User Authentication:** Secure sign-up and login functionality using Firebase Authentication.
-- **Achievement Submission:** Users can submit their achievements, including a title, description, and an optional link to evidence (e.g., a Google Drive link to a certificate or image).
-- **Profile Page:** A dedicated page for each user to view their submitted achievements and their status (Pending, Approved, Rejected).
-- **Admin Review Panel:** A secure area for administrators to review, approve, or reject user submissions.
-- **Real-time Updates:** Built with Firebase Firestore to provide real-time updates on the status of submissions.
+*   **Gamified Leaderboard:** Students can see their rank based on points earned from achievements.
+*   **Achievement Tracking:** Students can submit their achievements, which are then approved by faculty members.
+*   **Student Profiles:** Each student has a public profile showcasing their rank, achievements, and skills.
+*   **AI Career Bot:** An integrated chatbot that provides career guidance and answers student's questions.
+*   **Role-Based Access Control:** Different roles for students, faculty, and admins with different levels of permissions.
+*   **Real-time Updates:** The application uses Firebase Firestore for real-time data synchronization.
+
+## Workflow Summary
+
+The application follows a role-based workflow for students, faculty, and administrators.
+
+1.  **Authentication:** Users sign in using their credentials. The system distinguishes between `student`, `faculty`, and `admin` roles, directing them to their respective dashboards.
+
+2.  **Student Dashboard:** Upon logging in, a student sees an overview of their profile, including their current rank, total points, and a summary of their achievements.
+
+3.  **Achievement Submission:** Students can submit new achievements they have earned. These submissions enter a pending state, awaiting verification.
+
+4.  **Faculty Verification:** Faculty members have a dedicated interface to review and approve or reject pending achievement submissions from students.
+
+5.  **Leaderboard & Profiles:** Once an achievement is approved, the student's score is updated, which in turn affects their rank on the global leaderboard. All approved achievements are displayed on the student's public profile.
+
+6.  **AI Career Guidance:** Students can access the "Career Bot," an AI-powered counselor, to ask questions and receive personalized career advice based on their skills and interests.
 
 ## Technology Stack
 
-This project is built with a modern, type-safe, and scalable technology stack:
+*   **Frontend:**
+    *   **React:** A JavaScript library for building user interfaces.
+    *   **Vite:** A fast build tool and development server.
+    *   **TypeScript:** A typed superset of JavaScript.
+    *   **Tailwind CSS:** A utility-first CSS framework for rapid UI development.
+    *   **shadcn/ui:** A collection of re-usable components built with Radix UI and Tailwind CSS.
+    *   **React Router:** For client-side routing.
+    *   **TanStack Query:** For data fetching and state management.
+*   **Backend:**
+    *   **Firebase:** A comprehensive platform for building web and mobile applications.
+        *   **Firestore:** A NoSQL database for real-time data storage.
+        *   **Authentication:** For user authentication and management.
+*   **Deployment:** Vercel (or your preferred hosting provider)
 
-- **Frontend:** **React** & **Vite**
-- **Language:** **TypeScript**
-- **Backend as a Service (BaaS):** **Firebase**
-  - **Authentication:** Firebase Authentication
-  - **Database:** Cloud Firestore
-  - **Data Schema & SDK:** Firebase DataConnect
-- **Styling:** **Tailwind CSS**
-- **UI Components:** **shadcn/ui**
-- **Data Fetching/State Management:** **TanStack Query (React Query)**
-- **Deployment:** **Vercel**
+## Getting Started
 
-## Local Development Setup
+### Prerequisites
 
-To run this project on your local machine, follow these steps.
+*   Node.js (v18 or higher)
+*   npm or yarn
+*   A Firebase project
 
-### 1. Clone the Repository
+### Installation
 
-```bash
-git clone <YOUR_REPOSITORY_URL>
-cd skill-sphere-arena
-```
+1.  **Clone the repository:**
 
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Set up Firebase
-
-1.  Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
-2.  In your project dashboard, click on **"Add app"** and select the **Web** icon (`</>`).
-3.  Follow the setup instructions, and when you see the `firebaseConfig` object, copy the keys and values.
-4.  In the root of the `skill-sphere-arena` directory, create a new file named `.env.local`.
-5.  Paste your Firebase config into the `.env.local` file, formatting it like the example below. **Make sure to prefix each variable with `VITE_`** as required by Vite.
-
-    ```
-    # .env.local
-
-    VITE_FIREBASE_API_KEY="your-api-key"
-    VITE_FIREBASE_AUTH_DOMAIN="your-auth-domain"
-    VITE_FIREBASE_PROJECT_ID="your-project-id"
-    VITE_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
-    VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
-    VITE_FIREBASE_APP_ID="your-app-id"
+    ```bash
+    git clone https://github.com/your-username/skill-sphere-arena.git
+    cd skill-sphere-arena
     ```
 
-6. Enable Firestore in your Firebase project console.
+2.  **Install dependencies:**
 
-### 4. Start the Development Server
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
 
-Now you can start the local development server.
+3.  **Set up Firebase:**
 
-```bash
-npm run dev
-```
+    *   Create a new Firebase project.
+    *   Enable Firestore and Authentication.
+    *   Create a `.env.local` file in the root of the project and add your Firebase configuration:
 
-The application will be available at `http://localhost:5173`.
+        ```
+        VITE_FIREBASE_API_KEY=your-api-key
+        VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
+        VITE_FIREBASE_PROJECT_ID=your-project-id
+        VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+        VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+        VITE_FIREBASE_APP_ID=your-app-id
+        ```
 
-## Deployment
+4.  **Run the development server:**
 
-This project is configured for easy deployment to [Vercel](https://vercel.com/).
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
 
-To deploy to production, run the following command from the root of the `skill-sphere-arena` directory:
-
-```bash
-vercel --prod
-```
+    The application should now be running on `http://localhost:5173`.
 
 ## Project Structure
 
-- `/src/components`: Contains reusable UI components.
-- `/src/pages`: The main pages of the application (e.g., Profile, Admin, Login).
-- `/src/context`: Holds the React Context for authentication state.
-- `/src/firebase.ts`: Initializes the Firebase app and services.
-- `/dataconnect`: Contains the Firebase DataConnect schema (`dataconnect.schema.graphql`) and the auto-generated SDK for type-safe database interactions.
+```
+skill-sphere-arena/
+├── public/                # Static assets
+├── src/
+│   ├── components/        # Reusable components
+│   ├── context/           # React context providers
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Utility functions
+│   ├── pages/             # Page components
+│   ├── App.tsx            # Main application component
+│   ├── main.tsx           # Entry point of the application
+│   └── ...
+├── package.json
+└── ...
+```
+
+## Firebase Integration
+
+This project is tightly integrated with Firebase. Before running the application, make sure you have a Firebase project set up with Firestore and Authentication enabled. You will also need to configure the security rules for your Firestore database to ensure data integrity.
